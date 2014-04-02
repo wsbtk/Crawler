@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 
@@ -14,18 +15,20 @@ using HtmlAgilityPack;
         public int position = 0;
         public int scanned = 0;
         public bool flag;
-        public Hashtable HashCount;
+        public DateTime beginTime;
+        public DateTime endTime;
 
         public Uri Url { get; set; }
 
-        public Spider(Uri urlString, int MaxCount)
+        public Spider(Uri urlString)
         {
-            HashCount = new Hashtable(MaxCount);
             Url = urlString;
             flag = true;
         }
 
-        public void Crawl() {
+        public void Crawl()
+        {
+            beginTime = DateTime.Now;
             using (var client = new WebClient()) {
                 while (flag) {
                     string htmlSource;
@@ -35,17 +38,52 @@ using HtmlAgilityPack;
                     else {
                         //Console.WriteLine("hello " + position);
                         Console.WriteLine("Scanned " + scanned);
-                        htmlSource = client.DownloadString(capture.ElementAt(position));
-                        position++;
+                        if (scanned > 12000)
+                        {
+                            endTime = DateTime.Now;
+
+                            Console.WriteLine(endTime - beginTime);
+                            var count = capture.Count();
+                            Console.WriteLine(count);
+                            Console.ReadLine();
+                            break;
+                        };
+                        try
+                        {
+                            if (capture.ElementAt(position) == null)
+                            {
+                                position++; 
+                                continue;
+                            }
+                            htmlSource = client.DownloadString(capture.ElementAt(position));
+                        }
+                        catch (WebException ex)
+                        {
+                            if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
+                            {
+                                var resp = (HttpWebResponse)ex.Response;
+                                if (resp.StatusCode == HttpStatusCode.NotFound) // HTTP 404
+                                {
+                                    //the page was not found, continue with next in the for loop
+                                    continue;
+                                }
+                            }
+                            //throw any other exception - this should not occur
+                            throw;
+                        }
                     }
                     var returnedLinks = GetLinksFromWebsite(htmlSource);
                     if (returnedLinks == null) continue;
-                    foreach (var item in GetLinksFromWebsite(htmlSource))
+                    foreach (var item in returnedLinks)
                     {
-                        if ((item.Contains("#")) || (item.Contains(".xml")) || (item.Contains("omniupdate")) || (item.Contains("mailto"))) continue;
-                        var firstChar = (item[0]);
+                        if ((item.Contains("#")) || (item.Contains(".xml")) || (item.Contains("omniupdate"))
+                            || (item.Contains("go.view.usg.edu")) || (item.Contains("mailto")) || (item.Equals(""))) continue;
+                        if (capture.Contains(item)) continue;
+                        //if (!item.Contains("spsu.edu")) continue;
+                    //
+                        //var firstChar = (item[0]);
                         string line;
-                        var temp = new Uri(Url, item.ToString());
+                        var temp = new Uri(Url, item);
                         line = temp.AbsoluteUri;
                         //if (!firstChar.Equals('/')) {
                         //    if (firstChar.Equals('h')) { line = (item); }
@@ -54,7 +92,7 @@ using HtmlAgilityPack;
                         //else { line = ("http://www.spsu.edu" + item); }
                         scanned++;
                         capture.Add(line);
-                        Console.WriteLine(line);
+                        //Console.WriteLine(line);
                     }
                     Console.WriteLine("Testing the Value: " + capture.ElementAt<string>(position));
                 }
