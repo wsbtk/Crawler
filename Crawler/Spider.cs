@@ -13,7 +13,7 @@ using HtmlAgilityPack;
     class Spider
     {
         public HashSet<string> capture = new HashSet<string>();
-        public ConcurrentDictionary<string, string> dictionary = new ConcurrentDictionary<string, string>();
+        //public ConcurrentDictionary<string, string> dictionary = new ConcurrentDictionary<string, string>();
         public int position = 0;
         public int scanned = 0;
         public bool flag;
@@ -34,8 +34,7 @@ using HtmlAgilityPack;
             using (var client = new WebClient()) {
                 while (flag) {
                     string htmlSource;
-                    //if (capture.Count == 0) {
-                    if (dictionary.Count == 0) {
+                    if (capture.Count == 0) {
                         htmlSource = client.DownloadString(Url);
                     }
                     else {
@@ -46,8 +45,7 @@ using HtmlAgilityPack;
                             endTime = DateTime.Now;
 
                             Console.WriteLine(endTime - beginTime);
-                            //var count = capture.Count();
-                            var count = dictionary.Count();
+                            var count = capture.Count();
                             Console.WriteLine(count);
                             Console.ReadLine();
                             break;
@@ -68,7 +66,7 @@ using HtmlAgilityPack;
                                 var resp = (HttpWebResponse)ex.Response;
                                 if (resp.StatusCode == HttpStatusCode.NotFound) // HTTP 404
                                 {
-                                    //  the page was not found, continue with next in the for loop
+                                    //the page was not found, continue with next in the for loop
                                     continue;
                                 }
                             }

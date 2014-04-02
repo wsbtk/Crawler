@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,12 +10,12 @@ namespace Crawler
 {
     class Program
     {
+        private static BackgroundWorker _bw;// = new BackgroundWorker();
         static void Main(string[] args)
         {
             var thisUrl = new Uri("http://www.spsu.edu");
             var spider = new Spider(thisUrl);
 
-            var beginTime = DateTime.Now;
             Parallel.Invoke(
                 //20
                 //spider.Crawl,
@@ -40,6 +41,7 @@ namespace Crawler
                 spider.Crawl,
                 spider.Crawl
                 );
+            /*  **********    Statistics (for Above)    **********  */
             /*  1 Thread(s)
              * Scanned 12114
              * 00:00:08.1030000 
@@ -60,6 +62,23 @@ namespace Crawler
              * 00:00:01.3090000
              * 211
              */
+            /*  **********    Statistics (end)    **********  */
+
+            
+
+            /*  **********    IDEA    **********  
+             * 
+             * 1. need to change spider.Crawl to return a value.
+             * 2. Data Structure
+             *      2a. ConcurrentDictionary
+             *      2b. HashSet... however, using "lock"
+             * 3. Syntax ->
+             *      3a. ?
+             *      3b. 
+             *      var data = new ConcurrentDictionary<string, int>();
+             *      Parallel.Invoke(
+             *      
+            */
 
         }
     }
