@@ -8,15 +8,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-<<<<<<< HEAD
+
 using MySql.Data;
-
-=======
 using MySql.Data.MySqlClient;
->>>>>>> de5493246401d4e665e3c73f60c326702ac68953
 
 
-    class Spider
+class Spider
     {
         public HashSet<string> capture = new HashSet<string>();
         //public ConcurrentDictionary<string, string> dictionary = new ConcurrentDictionary<string, string>();
@@ -34,59 +31,21 @@ using MySql.Data.MySqlClient;
             flag = true;
         }
 
-<<<<<<< HEAD
-        private void MySql_Conx()
-        {
-          MySql.Data.MySqlClient.MySqlConnection conn;
-            string myConnectionString;
-            
-            //Variables for connecting to your database.
-            //These variable values come from your hosting account.
-            var hostname = "ForagerAdmin.db.10586941.hostedresource.com";
-            var username = "ForagerAdmin";
-            var dbname = "ForagerAdmin";
-            var pass = "Te@mQu4tro";
-            var tb1 = "Forager_User";
-
-            //myConnectionString = 
-            //    "server=127.0.0.1;uid=root;" +
-            //    "pwd=12345;database=test;";
-            myConnectionString = 
-                "server=" + hostname + ";" +
-                "uid=" + username +";" +
-                "pwd=" + pass + ";" +
-                "database=" + dbname +";";
-
-            try
-            {
-                conn = new MySql.Data.MySqlClient.MySqlConnection();
-                conn.ConnectionString = myConnectionString;
-                conn.Open();
-            }
-            catch (MySql.Data.MySqlClient.MySqlException ex)
-            {
-                //MessageBox.Show(ex.Message);
-            }
-        }
-=======
 	public void MySQL_Conx() {
 		//		conn_string.Server = "mysql7.000webhost.com";
 		//		conn_string.UserID = "a455555_test";
 		//		conn_string.Password = "a455555_me";
 		//		conn_string.Database = "xxxxxxxx";
 
-		MySqlConnectionStringBuilder conn_string = new MySqlConnectionStringBuilder();
-		conn_string.Server = "ForagerAdmin.db.10586941.hostedresource.com";
-		conn_string.Password = "Te@mQu4tro";
-		conn_string.UserID = "ForagerAdmin";
-		conn_string.Database = "ForagerAdmin";
+		var connString = new MySqlConnectionStringBuilder();
+		connString.Server = "ForagerAdmin.db.10586941.hostedresource.com";
+		connString.Password = "Te@mQu4tro";
+		connString.UserID = "ForagerAdmin";
+		connString.Database = "ForagerAdmin";
 
-		using (MySqlConnection conn = new MySqlConnection(conn_string.ToString()))
-		using (MySqlCommand cmd = conn.CreateCommand())
+		using (var conn = new MySqlConnection(connString.ToString()))
+		using (var cmd = conn.CreateCommand())
 		{    //watch out for this SQL injection vulnerability below
-			cmd.CommandText = string.Format("INSERT Test (lat, long) VALUES ({0},{1})",
-				OSGconv.deciLat, OSGconv.deciLon);
-			connection.Open();
 			cmd.ExecuteNonQuery();
 		}
 
@@ -96,7 +55,6 @@ using MySql.Data.MySqlClient;
 		// execute queries, etc
 		myConnection.Close();
 	}
->>>>>>> de5493246401d4e665e3c73f60c326702ac68953
 
         public void Crawl()
         {
