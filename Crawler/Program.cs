@@ -28,17 +28,17 @@ namespace Crawler
                 //spider.Crawl,
                 //spider.Crawl,
                 //spider.Crawl,
-                //10
-                spider.Crawl,
-                spider.Crawl,
-                spider.Crawl,
-                spider.Crawl,
-                spider.Crawl,
-                //5
-                spider.Crawl,
-                spider.Crawl,
-                spider.Crawl,
-                spider.Crawl,
+                ////10
+                //spider.Crawl,
+                //spider.Crawl,
+                //spider.Crawl,
+                //spider.Crawl,
+                //spider.Crawl,
+                ////5
+                //spider.Crawl,
+                //spider.Crawl,
+                //spider.Crawl,
+                //spider.Crawl,
                 spider.Crawl
                 );
             /*  **********    Statistics (for Above)    **********  */

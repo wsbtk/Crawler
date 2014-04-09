@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using MySql.Data;
+
 
 
     class Spider
@@ -26,6 +28,40 @@ using HtmlAgilityPack;
         {
             Url = urlString;
             flag = true;
+        }
+
+        private void MySql_Conx()
+        {
+          MySql.Data.MySqlClient.MySqlConnection conn;
+            string myConnectionString;
+            
+            //Variables for connecting to your database.
+            //These variable values come from your hosting account.
+            var hostname = "ForagerAdmin.db.10586941.hostedresource.com";
+            var username = "ForagerAdmin";
+            var dbname = "ForagerAdmin";
+            var pass = "Te@mQu4tro";
+            var tb1 = "Forager_User";
+
+            //myConnectionString = 
+            //    "server=127.0.0.1;uid=root;" +
+            //    "pwd=12345;database=test;";
+            myConnectionString = 
+                "server=" + hostname + ";" +
+                "uid=" + username +";" +
+                "pwd=" + pass + ";" +
+                "database=" + dbname +";";
+
+            try
+            {
+                conn = new MySql.Data.MySqlClient.MySqlConnection();
+                conn.ConnectionString = myConnectionString;
+                conn.Open();
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                //MessageBox.Show(ex.Message);
+            }
         }
 
         public void Crawl()
@@ -104,7 +140,7 @@ using HtmlAgilityPack;
     public static List<string> GetLinksFromWebsite(string htmlSource)
     {
         var doc = new HtmlDocument();
-        try
+        try 
         {
             doc.LoadHtml(htmlSource);
             if (doc.DocumentNode.InnerHtml == null) return null;
