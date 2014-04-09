@@ -8,8 +8,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+<<<<<<< HEAD
 using MySql.Data;
 
+=======
+using MySql.Data.MySqlClient;
+>>>>>>> de5493246401d4e665e3c73f60c326702ac68953
 
 
     class Spider
@@ -30,6 +34,7 @@ using MySql.Data;
             flag = true;
         }
 
+<<<<<<< HEAD
         private void MySql_Conx()
         {
           MySql.Data.MySqlClient.MySqlConnection conn;
@@ -63,6 +68,35 @@ using MySql.Data;
                 //MessageBox.Show(ex.Message);
             }
         }
+=======
+	public void MySQL_Conx() {
+		//		conn_string.Server = "mysql7.000webhost.com";
+		//		conn_string.UserID = "a455555_test";
+		//		conn_string.Password = "a455555_me";
+		//		conn_string.Database = "xxxxxxxx";
+
+		MySqlConnectionStringBuilder conn_string = new MySqlConnectionStringBuilder();
+		conn_string.Server = "ForagerAdmin.db.10586941.hostedresource.com";
+		conn_string.Password = "Te@mQu4tro";
+		conn_string.UserID = "ForagerAdmin";
+		conn_string.Database = "ForagerAdmin";
+
+		using (MySqlConnection conn = new MySqlConnection(conn_string.ToString()))
+		using (MySqlCommand cmd = conn.CreateCommand())
+		{    //watch out for this SQL injection vulnerability below
+			cmd.CommandText = string.Format("INSERT Test (lat, long) VALUES ({0},{1})",
+				OSGconv.deciLat, OSGconv.deciLon);
+			connection.Open();
+			cmd.ExecuteNonQuery();
+		}
+
+
+		myConnection.ConnectionString = myConnectionString;
+		myConnection.Open();
+		// execute queries, etc
+		myConnection.Close();
+	}
+>>>>>>> de5493246401d4e665e3c73f60c326702ac68953
 
         public void Crawl()
         {
