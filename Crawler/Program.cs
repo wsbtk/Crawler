@@ -28,7 +28,6 @@ namespace Crawler
                 //spider.Crawl,
                 //spider.Crawl,
                 //spider.Crawl,
-<<<<<<< HEAD
                 ////10
                 //spider.Crawl,
                 //spider.Crawl,
@@ -40,19 +39,6 @@ namespace Crawler
                 //spider.Crawl,
                 //spider.Crawl,
                 //spider.Crawl,
-=======
-                //10
-//                spider.Crawl,
-//                spider.Crawl,
-//                spider.Crawl,
-//                spider.Crawl,
-//                spider.Crawl,
-                //5
-//                spider.Crawl,
-//                spider.Crawl,
-//                spider.Crawl,
-//                spider.Crawl,
->>>>>>> de5493246401d4e665e3c73f60c326702ac68953
                 spider.Crawl
                 );
             /*  **********    Statistics (for Above)    **********  */

@@ -31,30 +31,45 @@ class Spider
             flag = true;
         }
 
-	public void MySQL_Conx() {
-		//		conn_string.Server = "mysql7.000webhost.com";
-		//		conn_string.UserID = "a455555_test";
-		//		conn_string.Password = "a455555_me";
-		//		conn_string.Database = "xxxxxxxx";
+        public void SqlInsert(string parent, string uniqueUrl, string urlType, int scanId)
+        {
+		    //		conn_string.Server = "mysql7.000webhost.com";
+		    //		conn_string.UserID = "a455555_test";
+		    //		conn_string.Password = "a455555_me";
+		    //		conn_string.Database = "xxxxxxxx";
 
-		var connString = new MySqlConnectionStringBuilder();
-		connString.Server = "ForagerAdmin.db.10586941.hostedresource.com";
-		connString.Password = "Te@mQu4tro";
-		connString.UserID = "ForagerAdmin";
-		connString.Database = "ForagerAdmin";
+		    var connString = new MySqlConnectionStringBuilder();
+		    connString.Server = "ForagerAdmin.db.10586941.hostedresource.com";
+		    connString.Password = "Te@mQu4tro";
+		    connString.UserID = "ForagerAdmin";
+		    connString.Database = "ForagerAdmin";
+            //var sqlTable = "Found_Links";
 
-		using (var conn = new MySqlConnection(connString.ToString()))
-		using (var cmd = conn.CreateCommand())
-		{    //watch out for this SQL injection vulnerability below
-			cmd.ExecuteNonQuery();
-		}
+		    var conn = new MySqlConnection();
+	        var cmd = new MySqlCommand();
+	        conn.ConnectionString = connString.ToString();
+            try
+            {
+                conn.Open();
+                cmd.Connection = conn;
 
+                //cmd.CommandText = "INSERT INTO " + sqlTable +" VALUES(NULL, @number, @text)";
+                //cmd.CommandText =  "INSERT INTO `ForagerAdmin`.`Found_Links` (`ID`, `Scan_ID`, `Parent`, `URL`, `URL_type`) " +
+                //                   "VALUES (NULL, " + scanId + ", " + Url + ", " + uniqueUrl + ", " + urlType + ")";
+                cmd.CommandText = "INSERT INTO `ForagerAdmin`.`Found_Links` VALUES(NULL, @Scan_ID, @Parent, @URL, @URL_type)";
+                cmd.Prepare();
 
-		myConnection.ConnectionString = myConnectionString;
-		myConnection.Open();
-		// execute queries, etc
-		myConnection.Close();
-	}
+                cmd.Parameters.AddWithValue("@Scan_ID", scanId);
+                cmd.Parameters.AddWithValue("@Parent", Url);
+                cmd.Parameters.AddWithValue("@URL", uniqueUrl);
+                cmd.Parameters.AddWithValue("@URL_type", urlType);
+                cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
+            }
+	    }
 
         public void Crawl()
         {
@@ -62,10 +77,8 @@ class Spider
             using (var client = new WebClient()) {
                 while (flag) {
                     string htmlSource;
-                    if (capture.Count == 0) {
-                        htmlSource = client.DownloadString(Url);
-                    }
-                    else {
+                    if (capture.Count != 0)
+                    {
                         //Console.WriteLine("hello " + position);
                         Console.WriteLine("Scanned " + scanned);
                         if (scanned > 12000)
@@ -77,12 +90,12 @@ class Spider
                             Console.WriteLine(count);
                             Console.ReadLine();
                             break;
-                        };
+                        }
                         try
                         {
                             if (capture.ElementAt(position) == null)
                             {
-                                position++; 
+                                position++;
                                 continue;
                             }
                             htmlSource = client.DownloadString(capture.ElementAt(position));
@@ -91,7 +104,7 @@ class Spider
                         {
                             if (ex.Status == WebExceptionStatus.ProtocolError && ex.Response != null)
                             {
-                                var resp = (HttpWebResponse)ex.Response;
+                                var resp = (HttpWebResponse) ex.Response;
                                 if (resp.StatusCode == HttpStatusCode.NotFound) // HTTP 404
                                 {
                                     //the page was not found, continue with next in the for loop
@@ -101,6 +114,10 @@ class Spider
                             //throw any other exception - this should not occur
                             throw;
                         }
+                    }
+                    else
+                    {
+                        htmlSource = client.DownloadString(Url);
                     }
                     var returnedLinks = GetLinksFromWebsite(htmlSource);
                     if (returnedLinks == null) continue;
@@ -121,6 +138,7 @@ class Spider
                         //}
                         //else { line = ("http://www.spsu.edu" + item); }
                         scanned++;
+                        SqlInsert(Url.ToString(), line, "href", 1);
                         capture.Add(line);
                         //Console.WriteLine(line);
                     }
