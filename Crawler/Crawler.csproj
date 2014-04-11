@@ -50,6 +50,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DatabaseHelper.cs" />
     <Compile Include="Spider.cs" />
     <Compile Include="Spider_old.cs" />
     <Compile Include="Program.cs" />

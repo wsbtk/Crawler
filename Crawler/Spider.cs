@@ -21,13 +21,6 @@ namespace Crawler
         public Spider(bool go)
         {
             flag = go;
-            _connString = new MySqlConnectionStringBuilder
-                {
-                    Server = "ForagerAdmin.db.10586941.hostedresource.com",
-                    Password = "Te@mQu4tro",
-                    UserID = "ForagerAdmin",
-                    Database = "ForagerAdmin"
-                };
         }
         #region Set Scan Information in Database
         private string GetMd5Hash(DateTime hashTime)
