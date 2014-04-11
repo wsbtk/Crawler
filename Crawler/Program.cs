@@ -19,15 +19,13 @@ namespace Crawler
             //var spider = new Spider(thisUrl);
             //spider.Crawl();
             var capture = new HashSet<string>();
+            var dict1 = new Dictionary<string, string>();
+            var dict2 = new Dictionary<string, string>();
             var captured = 0;
             var client = new WebClient();
             var thisUrl = new Uri("http://www.spsu.edu");
             var htmlSource = client.DownloadString(thisUrl);
 
-            //var webRequest = (HttpWebRequest)WebRequest.Create(thisUrl);
-            //webRequest.AllowAutoRedirect = false;
-            //var resp = (HttpWebResponse) webRequest.GetResponse();
-            //var respCode = (int)resp.StatusCode;
             var respCode = GetResponseCode(thisUrl);
             Console.WriteLine(thisUrl + " -- " + respCode);
             if (respCode == 200)
@@ -38,46 +36,54 @@ namespace Crawler
                     {
                         if ((item.Contains("#")) || (item.Contains(".xml")) || (item.Contains("omniupdate"))
                             || (item.Contains("go.view.usg.edu")) || (item.Contains("mailto")) || (item.Equals(""))) continue;
-                        if (capture.Contains(item)) continue;
+                        //if (capture.Contains(item)) continue;
                         var temp = new Uri(thisUrl, item);
                         var line = temp.AbsoluteUri;
-                        capture.Add(line);
+                        //capture.Add(line);
+                        if (dict1.ContainsKey(line)) continue;
+                        dict1.Add(line,thisUrl.ToString());
                         captured++;
                         //respCode = GetResponseCode(new Uri(line));
-                        Console.WriteLine(thisUrl + "\n -- " + line);
+                        //Console.WriteLine(thisUrl + "\n -- " + line);
                     }
                 }
             }
-            foreach (var items in capture)
+            //foreach (var items in capture)
+            foreach (var items in dict1.Keys)
             {
                 htmlSource = client.DownloadString(new Uri(items));
                 var returnedLinks = GetLinksFromWebsite(htmlSource);
                 if (returnedLinks == null) continue;
-                /* NON LINQ
+                // NON LINQ
                 foreach (var item in returnedLinks)
                 {
                     if ((item.Contains("#")) || (item.Contains(".xml")) || (item.Contains("omniupdate")) || (item.Contains("file"))
                         || (item.Contains("go.view.usg.edu")) || (item.Contains("mailto")) || (item.Equals(""))) continue;
                     var temp = new Uri(thisUrl, item);
                     var line = temp.AbsoluteUri;
-                    */
-                foreach (var line in from item in returnedLinks
-                                     where (!item.Contains("#"))
-                                           && (!item.Contains(".xml")) 
-                                           && (!item.Contains("omniupdate"))
-                                           && (!item.Contains("file")) 
-                                           && (!item.Contains("go.view.usg.edu"))
-                                           && (!item.Contains("mailto")) 
-                                           && (!item.Equals(""))
-                                     select new Uri(thisUrl, item) into temp
-                                     select temp.AbsoluteUri)
-                {
+                    
+                //foreach (var line in from item in returnedLinks
+                //                     where (!item.Contains("#"))
+                //                           && (!item.Contains(".xml")) 
+                //                           && (!item.Contains("omniupdate"))
+                //                           && (!item.Contains("file")) 
+                //                           && (!item.Contains("go.view.usg.edu"))
+                //                           && (!item.Contains("mailto")) 
+                //                           && (!item.Equals(""))
+                //                     select new Uri(thisUrl, item) into temp
+                //                     select temp.AbsoluteUri)
+                //{
+                    if (dict2.ContainsKey(line)) continue;
+                    dict2.Add(line, thisUrl.ToString());
                     //capture.Add(line);
                     captured++;
                     //respCode = GetResponseCode(new Uri(line));
-                    Console.WriteLine(items + "\n -- " + line);
+                    //Console.WriteLine(items + "\n -- " + line);
                 }
             }
+            Console.WriteLine("Dictionary Keys - " + (int)(dict2.Keys.Count + dict1.Keys.Count));
+            Console.WriteLine("Dictionary Values - " + (int)(dict1.Values.Count + dict2.Values.Count));
+            Console.WriteLine("Dictionary Values (distinct) - " + (int)(dict1.Values.Distinct().Count() + dict2.Values.Distinct().Count()));
             Console.WriteLine(captured);
             Console.ReadLine();
         }
