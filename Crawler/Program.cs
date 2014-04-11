@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 
 namespace Crawler
 {
@@ -13,73 +16,131 @@ namespace Crawler
 		//private static BackgroundWorker _bw;// = new BackgroundWorker();
         static void Main(string[] args)
         {
+            //var spider = new Spider(thisUrl);
+            //spider.Crawl();
+            var capture = new HashSet<string>();
+            var captured = 0;
+            var client = new WebClient();
             var thisUrl = new Uri("http://www.spsu.edu");
-            var spider = new Spider(thisUrl);
+            var htmlSource = client.DownloadString(thisUrl);
 
-            Parallel.Invoke(
-                //20
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                ////10
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                ////5
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                //spider.Crawl,
-                spider.Crawl
-                );
-            /*  **********    Statistics (for Above)    **********  */
-            /*  1 Thread(s)
-             * Scanned 12114
-             * 00:00:08.1030000 
-             * 211
-             */
-            /*  2 Thread(s)
-             * Scanned 12170
-             * 00:00:05.7060000
-             * 212
-             */
-            /*  5 Thread(s)
-             * Scanned 12032
-             * 00:00:03.3110000
-             * 212
-             */
-            /*  10 Thread(s)
-             * Scanned 12148
-             * 00:00:01.3090000
-             * 211
-             */
-            /*  **********    Statistics (end)    **********  */
-
-            
-
-            /*  **********    IDEA    **********  
-             * 
-             * 1. need to change spider.Crawl to return a value.
-             * 2. Data Structure
-             *      2a. ConcurrentDictionary
-             *      2b. HashSet... however, using "lock"
-             * 3. Syntax ->
-             *      3a. ?
-             *      3b. 
-             *      var data = new ConcurrentDictionary<string, int>();
-             *      Parallel.Invoke(
-             *      
-            */
-
+            //var webRequest = (HttpWebRequest)WebRequest.Create(thisUrl);
+            //webRequest.AllowAutoRedirect = false;
+            //var resp = (HttpWebResponse) webRequest.GetResponse();
+            //var respCode = (int)resp.StatusCode;
+            var respCode = GetResponseCode(thisUrl);
+            Console.WriteLine(thisUrl + " -- " + respCode);
+            if (respCode == 200)
+            {
+                var returnedLinks = GetLinksFromWebsite(htmlSource);
+                if (returnedLinks != null) {
+                    foreach (var item in returnedLinks)
+                    {
+                        if ((item.Contains("#")) || (item.Contains(".xml")) || (item.Contains("omniupdate"))
+                            || (item.Contains("go.view.usg.edu")) || (item.Contains("mailto")) || (item.Equals(""))) continue;
+                        if (capture.Contains(item)) continue;
+                        var temp = new Uri(thisUrl, item);
+                        var line = temp.AbsoluteUri;
+                        capture.Add(line);
+                        captured++;
+                        //respCode = GetResponseCode(new Uri(line));
+                        Console.WriteLine(thisUrl + "\n -- " + line);
+                    }
+                }
+            }
+            foreach (var items in capture)
+            {
+                htmlSource = client.DownloadString(new Uri(items));
+                var returnedLinks = GetLinksFromWebsite(htmlSource);
+                if (returnedLinks == null) continue;
+                /* NON LINQ
+                foreach (var item in returnedLinks)
+                {
+                    if ((item.Contains("#")) || (item.Contains(".xml")) || (item.Contains("omniupdate")) || (item.Contains("file"))
+                        || (item.Contains("go.view.usg.edu")) || (item.Contains("mailto")) || (item.Equals(""))) continue;
+                    var temp = new Uri(thisUrl, item);
+                    var line = temp.AbsoluteUri;
+                    */
+                foreach (var line in from item in returnedLinks
+                                     where (!item.Contains("#"))
+                                           && (!item.Contains(".xml")) 
+                                           && (!item.Contains("omniupdate"))
+                                           && (!item.Contains("file")) 
+                                           && (!item.Contains("go.view.usg.edu"))
+                                           && (!item.Contains("mailto")) 
+                                           && (!item.Equals(""))
+                                     select new Uri(thisUrl, item) into temp
+                                     select temp.AbsoluteUri)
+                {
+                    //capture.Add(line);
+                    captured++;
+                    //respCode = GetResponseCode(new Uri(line));
+                    Console.WriteLine(items + "\n -- " + line);
+                }
+            }
+            Console.WriteLine(captured);
+            Console.ReadLine();
         }
+
+        public static int GetResponseCode(Uri thisUrl)
+        {
+            var webRequest = (HttpWebRequest)WebRequest.Create(thisUrl);
+            webRequest.AllowAutoRedirect = true;
+            var resp = (HttpWebResponse) webRequest.GetResponse();
+            return (int)resp.StatusCode;
+        }
+        public static List<string> GetLinksFromWebsite(string htmlSource)
+        {
+            Match m;
+            var listReturn = new List<string>();
+            const string HRefPattern = "href\\s*=\\s*(?:[\"'](?<1>[^\"']*)[\"']|(?<1>\\S+))";
+
+            try
+            {
+                m = Regex.Match(htmlSource, HRefPattern,
+                                RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                                TimeSpan.FromSeconds(1));
+                while (m.Success)
+                {
+                    listReturn.Add(m.Groups[1].ToString());
+                    //Console.WriteLine("Found href " + m.Groups[1] + " at " + m.Groups[1].Index);
+                    m = m.NextMatch();
+                }
+                return listReturn;
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                Console.WriteLine("The matching operation timed out.");
+                return null;
+            }   
+        }
+        /*
+        public static List<string> GetLinksFromWebsite(string htmlSource)
+        {
+            var doc = new HtmlDocument();
+            try
+            {
+                doc.LoadHtml(htmlSource);
+                if (doc.DocumentNode.InnerHtml == null) return null;
+                if (doc.DocumentNode.SelectNodes("//a[@ref]") == null)
+                {
+                    return doc
+                       .DocumentNode
+                       .SelectNodes("//a[@href]")
+                       .Select(node => node.Attributes["href"].Value)
+                       .ToList();
+                }
+                return doc
+                    .DocumentNode
+                    .SelectNodes("//a[@ref]")
+                    .Select(node => node.Attributes["ref"].Value)
+                    .ToList();
+            }
+            catch (Exception)
+            {
+            }
+            return null;
+        }
+         * */
     }
 }
