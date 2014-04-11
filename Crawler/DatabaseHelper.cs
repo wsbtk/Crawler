@@ -56,7 +56,7 @@ namespace Crawler
                 return false;
             }
         }
-        public void BeginScan(DateTime startTime)
+        public int BeginScan(DateTime startTime)
         {
             var conn = new MySqlConnection();
             var cmd = new MySqlCommand();
@@ -78,6 +78,9 @@ namespace Crawler
                 cmd.Parameters.AddWithValue("@running", 1);
                 cmd.Parameters.AddWithValue("@scan_guid", startTimeGuid);
                 cmd.ExecuteNonQuery();
+
+                cmd.CommandText = "SELECT LAST_INSERT_ID()";
+                cmd.ExecuteReader();
                 conn.Close();
             }
             catch (MySqlException ex)
