@@ -14,12 +14,14 @@ namespace Crawler
     {
         private bool flag;
         private int captured = 0;
-        private MySqlConnectionStringBuilder connString;
+        private readonly MySqlConnectionStringBuilder _connString;
+        private DateTime _startTime;
+        private string _startTimeGuid;
 
         public Spider(bool go)
         {
             flag = go;
-            connString = new MySqlConnectionStringBuilder
+            _connString = new MySqlConnectionStringBuilder
                 {
                     Server = "ForagerAdmin.db.10586941.hostedresource.com",
                     Password = "Te@mQu4tro",
@@ -27,55 +29,59 @@ namespace Crawler
                     Database = "ForagerAdmin"
                 };
         }
-
+        #region Set Scan Information in Database
         private string GetMd5Hash(DateTime hashTime)
         {
-            MD5 hash = MD5.Create();
-            byte[] data = hash.ComputeHash(Encoding.UTF8.GetBytes(hashTime.ToString()));
+            var hash = MD5.Create();
+            var data = hash.ComputeHash(Encoding.UTF8.GetBytes(hashTime.ToString()));
             var sBuilder = new StringBuilder();
-            for (int i = 0; i < data.Length; i++)
+            for (var i = 0; i < data.Length; i++)
                 sBuilder.Append(data[i].ToString("x2"));
             return sBuilder.ToString();
         }
-
-        public int GetId()
+        public void Create()
         {
             var conn = new MySqlConnection();
             var cmd = new MySqlCommand();
-            conn.ConnectionString = connString.ToString();
+            conn.ConnectionString = _connString.ToString();
             try
             {
-                var startTime = DateTime.Now;
-                var startTimeGuid = GetMd5Hash(startTime);
+                _startTime = DateTime.Now;
+                _startTimeGuid = GetMd5Hash(_startTime);
                 conn.Open();
                 cmd.Connection = conn;
-                
+
                 cmd.CommandText = "INSERT INTO `ForagerAdmin`.`Scans` " +
                                   "VALUES(NULL, @UserID, @site, @start_time, @end_time, @total_pages, @running, @scan_guid)";
                 cmd.Prepare();
                 cmd.Parameters.AddWithValue("@UserID", "ForagerAdmin");
                 cmd.Parameters.AddWithValue("@site", "http://www.spsu.edu/");
-                cmd.Parameters.AddWithValue("@start_time", startTime);
+                cmd.Parameters.AddWithValue("@start_time", _startTime);
                 cmd.Parameters.AddWithValue("@end_time", null);
                 cmd.Parameters.AddWithValue("@total_pages", 0);
                 cmd.Parameters.AddWithValue("@running", 1);
-                cmd.Parameters.AddWithValue("@scan_guid", startTimeGuid);
+                cmd.Parameters.AddWithValue("@scan_guid", _startTimeGuid);
                 cmd.ExecuteNonQuery();
                 conn.Close();
-                
-
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
+            }
+        }
+        public int GetId()
+        {
+            var conn = new MySqlConnection();
+            var cmd = new MySqlCommand();
+            conn.ConnectionString = _connString.ToString();
+            try
+            {
                 conn.Open();
                 cmd.Connection = conn;
                 cmd.CommandText = "SELECT scan_id, start_time FROM `ForagerAdmin`.`Scans` " +
-                                  "WHERE scan_guid = '" + startTimeGuid + "'";
-
+                                  "WHERE scan_guid = '" + _startTimeGuid + "'";
                 var reader = cmd.ExecuteReader();
-                //while (reader.Read())
-                //{
-                //    Console.WriteLine(reader[0] + " -- " + reader[1]);
-                //}
                 return reader.Read() ? (int)reader[0] : -1;
-                
             }
             catch (MySqlException ex)
             {
@@ -83,9 +89,10 @@ namespace Crawler
                 return -1;
             }
         }
+        #endregion
 
-        public void Crawl(Uri thisUrl){
-            
+        public void Crawl(Uri thisUrl)
+        {
             //var capture = new HashSet<string>();
             var dict1 = new Dictionary<string, string>();
             var client = new WebClient();
@@ -187,7 +194,7 @@ namespace Crawler
         {
             var conn = new MySqlConnection();
             var cmd = new MySqlCommand();
-            conn.ConnectionString = connString.ToString();
+            conn.ConnectionString = _connString.ToString();
             try
             {
                 conn.Open();
@@ -201,8 +208,6 @@ namespace Crawler
                 cmd.Parameters.AddWithValue("@URL", uniqueUrl);
                 cmd.Parameters.AddWithValue("@URL_type", urlType);
                 cmd.ExecuteNonQuery();
-
-                
 
                 conn.Close();
             }
