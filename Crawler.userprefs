@@ -1,9 +1,10 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Crawler/Spider.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Crawler/DatabaseHelper.cs">
     <Files>
-      <File FileName="Crawler/Spider.cs" Line="48" Column="10" />
-      <File FileName="Crawler/Program.cs" Line="13" Column="69" />
+      <File FileName="Crawler/Spider.cs" Line="21" Column="31" />
+      <File FileName="Crawler/Program.cs" Line="1" Column="1" />
+      <File FileName="Crawler/DatabaseHelper.cs" Line="11" Column="25" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
