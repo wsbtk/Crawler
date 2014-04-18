@@ -72,7 +72,7 @@ namespace Crawler
         {
             var webRequest = (HttpWebRequest)WebRequest.Create(thisUrl);
             webRequest.AllowAutoRedirect = false;
-            webRequest.Timeout = 2000;
+            webRequest.Timeout = 10000;
             try
             {
                 var resp = (HttpWebResponse)webRequest.GetResponse();
@@ -101,7 +101,7 @@ namespace Crawler
             Match m;
             var listReturn = new List<string>();
             const string HRefPattern = "href\\s*=\\s*(?:[\"'](?<1>[^\"']*)[\"']|(?<1>\\S+))";
-
+            // Another change
             try
             {
                 m = Regex.Match(htmlSource, HRefPattern,
