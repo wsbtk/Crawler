@@ -55,6 +55,7 @@ namespace Crawler
                     //Console.WriteLine(thisUrl + "\n -- " + line);
                 }
             }
+            
             //}
             Console.WriteLine("Dictionary Keys - " + dict1.Keys.Count);
             Console.WriteLine("Dictionary Values - " + dict1.Values.Count);
