@@ -17,7 +17,7 @@ namespace Crawler
         {
             var thisUrl = new Uri("http://www.spsu.edu/");
             var spider = new Spider(true);
-            //spider.Crawl(thisUrl);
+            spider.Crawl(thisUrl);
             Console.WriteLine(spider.GetId());
             Console.ReadLine();
         }
