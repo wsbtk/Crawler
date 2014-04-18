@@ -43,7 +43,8 @@ namespace Crawler
                         || (!item.Contains("spsu.edu"))
                         || (item.Contains(".xml")) 
                         || (item.Contains("omniupdate"))
-                        || (item.Contains("mailto")) 
+                        || (item.Contains("mailto"))
+                        //|| (item.Contains("text.usg.edu"))
                         || (item.Equals(""))) continue;
                         //|| (item.Contains("go.view.usg.edu")) 
                     var temp = new Uri(thisUrl, item);
@@ -61,9 +62,19 @@ namespace Crawler
             Console.WriteLine("Dictionary Values - " + dict1.Values.Count);
             Console.WriteLine("Dictionary Values (distinct) - " + dict1.Values.Distinct().Count());
             Console.WriteLine(captured);
-            foreach (var link in dict1)
+            //foreach (var link in dict1)
+            //{
+            //    Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
+            //    //Uri new_link = link;
+            //    //Crawl(new_link);
+            //}
+
+             foreach (var link in dict1)
             {
                 Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
+                //Uri new_link = new Uri(link.Key);
+                //Crawl(new_link);
+                //Console.WriteLine(new_link);
             }
             Console.WriteLine("done");
             Console.ReadLine();
@@ -180,7 +191,7 @@ namespace Crawler
                 return false;
             }
         }
-        public int BeginScan(DateTime startTime)
+        public void BeginScan(DateTime startTime)
         {
             var conn = new MySqlConnection();
             var cmd = new MySqlCommand();

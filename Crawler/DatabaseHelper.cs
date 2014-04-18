@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-<<<<<<< HEAD
 using System.Threading.Tasks;
-=======
-using System.Threading.Tasks;d
->>>>>>> 203eb50ee232ff016b9e57cab9e8ce6e1946d38a
 using MySql.Data.MySqlClient;
 
 namespace Crawler
@@ -60,7 +56,7 @@ namespace Crawler
                 return false;
             }
         }
-        public int BeginScan(DateTime startTime)
+        public void BeginScan(DateTime startTime)
         {
             var conn = new MySqlConnection();
             var cmd = new MySqlCommand();
