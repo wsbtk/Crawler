@@ -121,7 +121,6 @@ namespace Crawler
                 return null;
             }   
         }
-
         public void SqlInsert(string parent, string uniqueUrl, string urlType, int scanId)
         {
             var conn = new MySqlConnection();
@@ -131,16 +130,13 @@ namespace Crawler
             {
                 conn.Open();
                 cmd.Connection = conn;
-
                 cmd.CommandText = "INSERT INTO `ForagerAdmin`.`Found_Links` VALUES(NULL, @Scan_ID, @Parent, @URL, @URL_type)";
                 cmd.Prepare();
-
                 cmd.Parameters.AddWithValue("@Scan_ID", scanId);
                 cmd.Parameters.AddWithValue("@Parent", parent);
                 cmd.Parameters.AddWithValue("@URL", uniqueUrl);
                 cmd.Parameters.AddWithValue("@URL_type", urlType);
                 cmd.ExecuteNonQuery();
-
                 conn.Close();
             }
             catch (MySqlException ex)
