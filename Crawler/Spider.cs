@@ -61,12 +61,12 @@ namespace Crawler
             Console.WriteLine("Dictionary Values - " + dict1.Values.Count);
             Console.WriteLine("Dictionary Values (distinct) - " + dict1.Values.Distinct().Count());
             Console.WriteLine(captured);
-            //foreach (var link in dict1)
-            //{
-            //    Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
-            //    //Uri new_link = link;
-            //    //Crawl(new_link);
-            //}
+            foreach (var link in dict1)
+            {
+                Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
+                //Uri new_link = link;
+                //Crawl(new_link);
+            }
 
              foreach (var link in dict1)
              {
@@ -74,9 +74,9 @@ namespace Crawler
                  var scanid = _dbHelper.GetId(_startTimeGuid);
                  _dbHelper.Sql_Insert_FoundLinks(link.Value, link.Key, "href", scanid);
                 Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
-                //Uri new_link = new Uri(link.Key);
-                //Crawl(new_link);
-                //Console.WriteLine(new_link);
+                Uri new_link = new Uri(link.Key);
+                Crawl(new_link);
+                Console.WriteLine(new_link);
             }
             Console.WriteLine("done");
             //Console.ReadLine();
