@@ -35,12 +35,14 @@ namespace Crawler
             var client = new WebClient();
             //var thisUrl = new Uri("http://www.spsu.edu");
             var htmlSource = client.DownloadString(thisUrl);
+            //var imgSource = client.DownloadString(thisUrl);
 
             //var respCode = GetResponseCode(thisUrl);
             //Console.WriteLine(thisUrl + " -- " + respCode);
             //if (respCode == 200)
             //{
             var returnedLinks = GetLinksFromWebsite(htmlSource);
+            var returnedimgs = GetLinksFromImages(htmlSource);
             if (returnedLinks != null) {
                 foreach (var line in returnedLinks.Where(item => (!item.Contains("#")) 
                                 && (item.Contains("spsu.edu")) 
@@ -55,7 +57,17 @@ namespace Crawler
                     captured++;
                 }
             }
-            
+            if (returnedimgs != null)
+            {
+                //foreach (var line in returnedimgs.Where(item => (item.Contains(".gif"))
+                //                && (item.Contains(".jpeg")) 
+                  //              && (!item.Equals(""))).Select(item => new Uri(thisUrl, item)).Select(temp => temp.AbsoluteUri).Where(line => !dict1.ContainsKey(line)))
+                foreach(var line in returnedimgs)
+                {
+                    dict1.Add(line, thisUrl.ToString());
+                    captured++;
+                }
+            }
             //}
             Console.WriteLine("Dictionary Keys - " + dict1.Keys.Count);
             Console.WriteLine("Dictionary Values - " + dict1.Values.Count);
@@ -74,9 +86,9 @@ namespace Crawler
                  var scanid = _dbHelper.GetId(_startTimeGuid);
                  _dbHelper.Sql_Insert_FoundLinks(link.Value, link.Key, "href", scanid);
                 Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
-                Uri new_link = new Uri(link.Key);
-                Crawl(new_link);
-                Console.WriteLine(new_link);
+                //Uri new_link = new Uri(link.Key);
+                //Crawl(new_link);
+                //Console.WriteLine(new_link);
             }
             Console.WriteLine("done");
             //Console.ReadLine();
@@ -135,7 +147,31 @@ namespace Crawler
                 return null;
             }   
         }
-        
+        public static List<string> GetLinksFromImages(string imgSource)
+        {
+            Match m;
+            var listReturn = new List<string>();
+            const string srcPattern = "<img.+?src=[\"'](.+?)[\"'].*?>";
+            // Another change
+            try
+            {
+                m = Regex.Match(imgSource, srcPattern,
+                                RegexOptions.IgnoreCase | RegexOptions.Compiled,
+                                TimeSpan.FromSeconds(1));
+                while (m.Success)
+                {
+                    listReturn.Add(m.Groups[1].ToString());
+                    //Console.WriteLine("Found href " + m.Groups[1] + " at " + m.Groups[1].Index);
+                    m = m.NextMatch();
+                }
+                return listReturn;
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                Console.WriteLine("The matching operation timed out.");
+                return null;
+            }
+        }
 
     }
 }
