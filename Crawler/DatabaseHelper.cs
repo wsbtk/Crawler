@@ -11,6 +11,19 @@ namespace Crawler
     class DatabaseHelper
     {
         private readonly MySqlConnectionStringBuilder _connString;
+        private static string _startTimeGuid;
+
+        public string StartTimeGuid
+        {
+            get
+            {
+                return _startTimeGuid;
+            }
+            //set
+            //{
+            //    _startTimeGuid = value;
+            //}
+        }
 
         public DatabaseHelper()
         {
@@ -30,7 +43,8 @@ namespace Crawler
             var sBuilder = new StringBuilder();
             for (var i = 0; i < data.Length; i++)
                 sBuilder.Append(data[i].ToString("x2"));
-            return sBuilder.ToString();
+            _startTimeGuid = sBuilder.ToString();
+            return _startTimeGuid;
         }
          
         public bool CheckRunning(string startTimeGuid)
@@ -56,6 +70,7 @@ namespace Crawler
                 return false;
             }
         }
+        
         public void BeginScan(DateTime startTime)
         {
             var conn = new MySqlConnection();
@@ -88,7 +103,8 @@ namespace Crawler
                 Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
             }
         }
-        public int GetId(string _startTimeGuid)
+
+        public int GetId(string startTimeGuid)
         {
             var conn = new MySqlConnection();
             var cmd = new MySqlCommand();
@@ -98,7 +114,7 @@ namespace Crawler
                 conn.Open();
                 cmd.Connection = conn;
                 cmd.CommandText = "SELECT scan_id, start_time FROM `ForagerAdmin`.`Scans` " +
-                                  "WHERE scan_guid = '" + _startTimeGuid + "'";
+                                  "WHERE scan_guid = '" + startTimeGuid + "'";
                 var reader = cmd.ExecuteReader();
                 return reader.Read() ? (int)reader[0] : -1;
             }
@@ -108,5 +124,31 @@ namespace Crawler
                 return -1;
             }
         }
+
+        public void Sql_Insert_FoundLinks(string parent, string uniqueUrl, string urlType, int scanId)
+        {
+            var conn = new MySqlConnection();
+            var cmd = new MySqlCommand();
+            conn.ConnectionString = _connString.ToString();
+
+            try
+            {
+                conn.Open();
+                cmd.Connection = conn;
+                cmd.CommandText = "INSERT INTO `ForagerAdmin`.`Found_Links` VALUES(NULL, @Scan_ID, @Parent, @URL, @URL_type)";
+                cmd.Prepare();
+                cmd.Parameters.AddWithValue("@Scan_ID", scanId);
+                cmd.Parameters.AddWithValue("@Parent", parent);
+                cmd.Parameters.AddWithValue("@URL", uniqueUrl);
+                cmd.Parameters.AddWithValue("@URL_type", urlType);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+            catch (MySqlException ex)
+            {
+                Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
+            }
+        }
+
     }
 }

@@ -7,20 +7,25 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using System.Security.Cryptography;
-//im here
+
 namespace Crawler
 {
     class Spider
     {
         private bool flag;
         private int captured = 0;
+        private int _scan;
         private readonly MySqlConnectionStringBuilder _connString;
-        private DateTime _startTime;
+        private readonly DateTime _startTime;
         private string _startTimeGuid;
+        private readonly DatabaseHelper _dbHelper;
 
         public Spider(bool go)
         {
             flag = go;
+            _dbHelper = new DatabaseHelper();
+            _startTime = DateTime.Now;
+           _dbHelper.BeginScan(_startTime);
         }
 
         public void Crawl(Uri thisUrl)
@@ -37,23 +42,17 @@ namespace Crawler
             //{
             var returnedLinks = GetLinksFromWebsite(htmlSource);
             if (returnedLinks != null) {
-                foreach (var item in returnedLinks)
+                foreach (var line in returnedLinks.Where(item => (!item.Contains("#")) 
+                                && (item.Contains("spsu.edu")) 
+                                && (!item.Contains(".xml")) 
+                                && (!item.Contains("omniupdate")) 
+                                && (!item.Contains("mailto")) 
+                                && (!item.Contains("text.usg.edu")) 
+                                //&& (!item.Contains("go.view.usg.edu")) 
+                                && (!item.Equals(""))).Select(item => new Uri(thisUrl, item)).Select(temp => temp.AbsoluteUri).Where(line => !dict1.ContainsKey(line)))
                 {
-                    if ((item.Contains("#")) 
-                        || (!item.Contains("spsu.edu"))
-                        || (item.Contains(".xml")) 
-                        || (item.Contains("omniupdate"))
-                        || (item.Contains("mailto"))
-                        //|| (item.Contains("text.usg.edu"))
-                        || (item.Equals(""))) continue;
-                        //|| (item.Contains("go.view.usg.edu")) 
-                    var temp = new Uri(thisUrl, item);
-                    var line = temp.AbsoluteUri;
-                    if (dict1.ContainsKey(line)) continue;
-                    dict1.Add(line,thisUrl.ToString());
+                    dict1.Add(line, thisUrl.ToString());
                     captured++;
-                    //respCode = GetResponseCode(new Uri(line));
-                    //Console.WriteLine(thisUrl + "\n -- " + line);
                 }
             }
             
@@ -70,21 +69,24 @@ namespace Crawler
             //}
 
              foreach (var link in dict1)
-            {
+             {
+                 _startTimeGuid = _dbHelper.StartTimeGuid;
+                 var scanid = _dbHelper.GetId(_startTimeGuid);
+                 _dbHelper.Sql_Insert_FoundLinks(link.Value, link.Key, "href", scanid);
                 Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
                 //Uri new_link = new Uri(link.Key);
                 //Crawl(new_link);
                 //Console.WriteLine(new_link);
             }
             Console.WriteLine("done");
-            Console.ReadLine();
+            //Console.ReadLine();
         }
 
         public static int GetResponseCode(Uri thisUrl)
         {
             var webRequest = (HttpWebRequest)WebRequest.Create(thisUrl);
             webRequest.AllowAutoRedirect = false;
-            webRequest.Timeout = 10000;
+            webRequest.Timeout = 2000;
             try
             {
                 var resp = (HttpWebResponse)webRequest.GetResponse();
@@ -133,116 +135,7 @@ namespace Crawler
                 return null;
             }   
         }
-        public void SqlInsert(string parent, string uniqueUrl, string urlType, int scanId)
-        {
-            var conn = new MySqlConnection();
-            var cmd = new MySqlCommand();
-            conn.ConnectionString = _connString.ToString();
-            try
-            {
-                conn.Open();
-                cmd.Connection = conn;
-                cmd.CommandText = "INSERT INTO `ForagerAdmin`.`Found_Links` VALUES(NULL, @Scan_ID, @Parent, @URL, @URL_type)";
-                cmd.Prepare();
-                cmd.Parameters.AddWithValue("@Scan_ID", scanId);
-                cmd.Parameters.AddWithValue("@Parent", parent);
-                cmd.Parameters.AddWithValue("@URL", uniqueUrl);
-                cmd.Parameters.AddWithValue("@URL_type", urlType);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
-            }
-        }
-
-
-        private static string GetMd5Hash(DateTime hashTime)
-        {
-            var hash = MD5.Create();
-            var data = hash.ComputeHash(Encoding.UTF8.GetBytes(hashTime.ToString()));
-            var sBuilder = new StringBuilder();
-            for (var i = 0; i < data.Length; i++)
-                sBuilder.Append(data[i].ToString("x2"));
-            return sBuilder.ToString();
-        }
-
-        public bool CheckRunning(string startTimeGuid)
-        {
-            var tf = false;
-            var conn = new MySqlConnection();
-            var cmd = new MySqlCommand();
-            conn.ConnectionString = _connString.ToString();
-            try
-            {
-                conn.Open();
-                cmd.Connection = conn;
-                cmd.CommandText = "SELECT running FROM `ForagerAdmin`.`Scans` " +
-                                  "WHERE scan_guid = '" + startTimeGuid + "'";
-                var reader = cmd.ExecuteReader();
-                if (reader.Read())
-                    tf = (int)reader[0] == 1;
-                return tf;
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
-                return false;
-            }
-        }
-        public void BeginScan(DateTime startTime)
-        {
-            var conn = new MySqlConnection();
-            var cmd = new MySqlCommand();
-            conn.ConnectionString = _connString.ToString();
-            try
-            {
-                _startTimeGuid = GetMd5Hash(startTime);
-                conn.Open();
-                cmd.Connection = conn;
-
-                cmd.CommandText = "INSERT INTO `ForagerAdmin`.`Scans` " +
-                                  "VALUES(NULL, @UserID, @site, @start_time, @end_time, @total_pages, @running, @scan_guid)";
-                cmd.Prepare();
-                cmd.Parameters.AddWithValue("@UserID", "ForagerAdmin");
-                cmd.Parameters.AddWithValue("@site", "http://www.spsu.edu/");
-                cmd.Parameters.AddWithValue("@start_time", startTime);
-                cmd.Parameters.AddWithValue("@end_time", null);
-                cmd.Parameters.AddWithValue("@total_pages", 0);
-                cmd.Parameters.AddWithValue("@running", 1);
-                cmd.Parameters.AddWithValue("@scan_guid", _startTimeGuid);
-                cmd.ExecuteNonQuery();
-
-                cmd.CommandText = "SELECT LAST_INSERT_ID()";
-                cmd.ExecuteReader();
-                conn.Close();
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
-            }
-        }
-        public int GetId()
-        {
-            var conn = new MySqlConnection();
-            var cmd = new MySqlCommand();
-            conn.ConnectionString = _connString.ToString();
-            try
-            {
-                conn.Open();
-                cmd.Connection = conn;
-                cmd.CommandText = "SELECT scan_id, start_time FROM `ForagerAdmin`.`Scans` " +
-                                  "WHERE scan_guid = '" + _startTimeGuid + "'";
-                var reader = cmd.ExecuteReader();
-                return reader.Read() ? (int)reader[0] : -1;
-            }
-            catch (MySqlException ex)
-            {
-                Console.WriteLine("Error " + ex.Number + " has occurred: " + ex.Message, "Error");
-                return -1;
-            }
-        }
+        
 
     }
 }
