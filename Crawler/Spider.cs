@@ -83,15 +83,15 @@ namespace Crawler
              foreach (var link in dict1)
              {
                  _startTimeGuid = _dbHelper.StartTimeGuid;
-                 var scanid = _dbHelper.GetId(_startTimeGuid);
-                 _dbHelper.Sql_Insert_FoundLinks(link.Value, link.Key, "href", scanid);
+                var scanid = _dbHelper.GetId(_startTimeGuid);
+                _dbHelper.Sql_Insert_FoundLinks(link.Value, link.Key, "href", scanid);
                 Console.WriteLine(link.Key + " - " + GetResponseCode(new Uri(link.Key)));
                 //Uri new_link = new Uri(link.Key);
                 //Crawl(new_link);
                 //Console.WriteLine(new_link);
             }
             Console.WriteLine("done");
-            //Console.ReadLine();
+            Console.ReadLine();
         }
 
         public static int GetResponseCode(Uri thisUrl)
