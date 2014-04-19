@@ -44,15 +44,19 @@ namespace Crawler
             var returnedLinks = GetLinksFromWebsite(htmlSource);
             var returnedimgs = GetLinksFromImages(htmlSource);
             if (returnedLinks != null) {
-                foreach (var line in returnedLinks.Where(item => (!item.Contains("#")) 
-                                && (item.Contains("spsu.edu")) 
-                                && (!item.Contains(".xml")) 
-                                && (!item.Contains("omniupdate")) 
-                                && (!item.Contains("mailto")) 
-                                && (!item.Contains("text.usg.edu")) 
-                                //&& (!item.Contains("go.view.usg.edu")) 
-                                && (!item.Equals(""))).Select(item => new Uri(thisUrl, item)).Select(temp => temp.AbsoluteUri).Where(line => !dict1.ContainsKey(line)))
+                foreach (var item in returnedLinks)
                 {
+                    if ((item.Contains("#"))
+                        || (!item.Contains("spsu.edu"))
+                        || (item.Contains(".xml"))
+                        || (item.Contains("omniupdate"))
+                        || (item.Contains("mailto"))
+                        || (item.Equals(""))) continue;
+                    //|| (item.Contains("go.view.usg.edu")) 
+                    var temp = new Uri(thisUrl, item);
+                    var line = temp.AbsoluteUri;
+                    if (dict1.ContainsKey(line)) continue;
+
                     dict1.Add(line, thisUrl.ToString());
                     captured++;
                 }
