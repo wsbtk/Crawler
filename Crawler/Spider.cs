@@ -66,8 +66,10 @@ namespace Crawler
                 //foreach (var line in returnedimgs.Where(item => (item.Contains(".gif"))
                 //                && (item.Contains(".jpeg")) 
                   //              && (!item.Equals(""))).Select(item => new Uri(thisUrl, item)).Select(temp => temp.AbsoluteUri).Where(line => !dict1.ContainsKey(line)))
-                foreach(var line in returnedimgs)
+                foreach(var item in returnedimgs)
                 {
+                    var temp = new Uri(thisUrl, item);
+                    var line = temp.AbsoluteUri;
                     dict1.Add(line, thisUrl.ToString());
                     captured++;
                 }
