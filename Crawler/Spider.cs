@@ -41,39 +41,39 @@ namespace Crawler
             //Console.WriteLine(thisUrl + " -- " + respCode);
             //if (respCode == 200)
             //{
-            var returnedLinks = GetLinksFromWebsite(htmlSource);
-            var returnedimgs = GetLinksFromImages(htmlSource);
-            if (returnedLinks != null) {
-                foreach (var item in returnedLinks)
-                {
-                    if ((item.Contains("#"))
-                        || (!item.Contains("spsu.edu"))
-                        || (item.Contains(".xml"))
-                        || (item.Contains("omniupdate"))
-                        || (item.Contains("mailto"))
-                        || (item.Equals(""))) continue;
-                    //|| (item.Contains("go.view.usg.edu")) 
-                    var temp = new Uri(thisUrl, item);
-                    var line = temp.AbsoluteUri;
-                    if (dict1.ContainsKey(line)) continue;
+            ////////////var returnedLinks = GetLinksFromWebsite(thisUrl, htmlSource);
+            ////////////var returnedimgs = GetLinksFromImages(thisUrl, htmlSource);
+            //if (returnedLinks != null) {
+            //    foreach (var item in returnedLinks)
+            //    {
+            //        if ((item.Contains("#"))
+            //            || (!item.Contains("spsu.edu"))
+            //            || (item.Contains(".xml"))
+            //            || (item.Contains("omniupdate"))
+            //            || (item.Contains("mailto"))
+            //            || (item.Equals(""))) continue;
+            //        //|| (item.Contains("go.view.usg.edu")) 
+            //        var temp = new Uri(thisUrl, item);
+            //        var line = temp.AbsoluteUri;
+            //        if (dict1.ContainsKey(line)) continue;
 
-                    dict1.Add(line, thisUrl.ToString());
-                    captured++;
-                }
-            }
-            if (returnedimgs != null)
-            {
-                //foreach (var line in returnedimgs.Where(item => (item.Contains(".gif"))
-                //                && (item.Contains(".jpeg")) 
-                  //              && (!item.Equals(""))).Select(item => new Uri(thisUrl, item)).Select(temp => temp.AbsoluteUri).Where(line => !dict1.ContainsKey(line)))
-                foreach(var item in returnedimgs)
-                {
-                    var temp = new Uri(thisUrl, item);
-                    var line = temp.AbsoluteUri;
-                    dict1.Add(line, thisUrl.ToString());
-                    captured++;
-                }
-            }
+            //        dict1.Add(line, thisUrl.ToString());
+            //        captured++;
+            //    }
+            //}
+            //if (returnedimgs != null)
+            //{
+            //    //foreach (var line in returnedimgs.Where(item => (item.Contains(".gif"))
+            //    //                && (item.Contains(".jpeg")) 
+            //      //              && (!item.Equals(""))).Select(item => new Uri(thisUrl, item)).Select(temp => temp.AbsoluteUri).Where(line => !dict1.ContainsKey(line)))
+            //    foreach(var item in returnedimgs)
+            //    {
+            //        var temp = new Uri(thisUrl, item);
+            //        var line = temp.AbsoluteUri;
+            //        dict1.Add(line, thisUrl.ToString());
+            //        captured++;
+            //    }
+            //}
             //}
             Console.WriteLine("Dictionary Keys - " + dict1.Keys.Count);
             Console.WriteLine("Dictionary Values - " + dict1.Values.Count);
@@ -100,7 +100,7 @@ namespace Crawler
             Console.ReadLine();
         }
 
-        public static int GetResponseCode(Uri thisUrl)
+        public int GetResponseCode(Uri thisUrl)
         {
             var webRequest = (HttpWebRequest)WebRequest.Create(thisUrl);
             webRequest.AllowAutoRedirect = false;
@@ -128,9 +128,10 @@ namespace Crawler
             }
             return -1;
         }
-        public static List<string> GetLinksFromWebsite(string htmlSource)
+        public void GetLinksFromWebsite(ref HashSet<string> hrefHash, Uri thisUrl, string htmlSource)
         {
             Match m;
+            //var tempHash = new HashSet<string>();
             var listReturn = new List<string>();
             const string HRefPattern = "href\\s*=\\s*(?:[\"'](?<1>[^\"']*)[\"']|(?<1>\\S+))";
             // Another change
@@ -145,15 +146,33 @@ namespace Crawler
                     //Console.WriteLine("Found href " + m.Groups[1] + " at " + m.Groups[1].Index);
                     m = m.NextMatch();
                 }
-                return listReturn;
+                lock (hrefHash) {
+                    foreach (var item in listReturn)
+                    {
+                        if ((item.Contains("#"))
+                            || (!item.Contains("spsu.edu"))
+                            || (item.Contains(".xml"))
+                            || (item.Contains("omniupdate"))
+                            || (item.Contains("go.view.usg.edu"))
+                            || (item.Contains("mailto"))
+                            || (item.Contains("file"))
+                            //|| (item.Contains("zimbra"))
+                            || (item.Equals(""))) continue;
+                        //if (temp.Contains(item)) continue;
+                        var temp = new Uri(thisUrl, item);
+                        var line = temp.AbsoluteUri;
+                        hrefHash.Add(line);
+                        //respCode = GetResponseCode(new Uri(line));
+                        //Console.WriteLine(thisUrl + "\n -- " + line);
+                    }
+                }
             }
             catch (RegexMatchTimeoutException)
             {
                 Console.WriteLine("The matching operation timed out.");
-                return null;
             }   
         }
-        public static List<string> GetLinksFromImages(string imgSource)
+        public void GetLinksFromImages(ref HashSet<string> srcHash, Uri thisUrl, string imgSource)
         {
             Match m;
             var listReturn = new List<string>();
@@ -170,12 +189,19 @@ namespace Crawler
                     //Console.WriteLine("Found href " + m.Groups[1] + " at " + m.Groups[1].Index);
                     m = m.NextMatch();
                 }
-                return listReturn;
+                lock (srcHash)
+                {
+                    foreach(var item in listReturn)
+                    {
+                        var temp = new Uri(thisUrl, item);
+                        var line = temp.AbsoluteUri;
+                        srcHash.Add(line);
+                    }
+                }
             }
             catch (RegexMatchTimeoutException)
             {
                 Console.WriteLine("The matching operation timed out.");
-                return null;
             }
         }
 
