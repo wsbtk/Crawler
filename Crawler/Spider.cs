@@ -14,8 +14,8 @@ namespace Crawler
     {
         private bool flag;
         private int captured = 0;
-        private int _scan;
-        private readonly MySqlConnectionStringBuilder _connString;
+        //private int _scan;
+        //private readonly MySqlConnectionStringBuilder _connString;
         private readonly DateTime _startTime;
         private string _startTimeGuid;
         private readonly DatabaseHelper _dbHelper;
